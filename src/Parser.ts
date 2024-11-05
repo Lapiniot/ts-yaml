@@ -16,7 +16,7 @@ export default class {
 class Context {
     private state!: State;
     readonly entries: Array<any>;
-    readonly enterState: State;
+    readonly enterState: State<Record<string, any>>;
 
     constructor() {
         this.entries = [];
@@ -24,7 +24,7 @@ class Context {
     }
 
     get node() {
-        return this.enterState.node;
+        return this.enterState.node["root"];
     }
 
     transitionTo(state: State<unknown>) {
