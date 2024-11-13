@@ -76,7 +76,7 @@ class ScalarState extends State {
     }
 
     next(): IteratorResult<Token, undefined> {
-        const chunks: Array<string> = [];
+        const spans: Array<string> = [];
         const { context: { text, text: { length } } } = this;
 
         for (let { start: index, start, indent = 0, indent: blockIndent, line, column } = this;
@@ -103,7 +103,7 @@ class ScalarState extends State {
                 this.context.transitionTo(new ScalarState(start, undefined, line, 1));
                 return {
                     value: {
-                        kind: TokenKind.Scalar, value: fold(chunks),
+                        kind: TokenKind.Scalar, value: fold(),
                         indent: blockIndent, line: this.line, column: this.column
                     }
                 };
@@ -112,7 +112,7 @@ class ScalarState extends State {
             // Sequence entry marker detection
             if (code === Indicators.SequenceEntry) {
                 if (index + 1 >= length || isWhiteSpaceOrEOL(text.codePointAt(index + 1))) {
-                    if (chunks.length === 0) {
+                    if (spans.length === 0) {
                         this.context.transitionTo(new ScalarState(index + 1, indent + 1, line, column + padding + 1));
                         return { value: { kind: TokenKind.SequenceEntry, indent, line, column: column + padding } };
                     }
@@ -120,7 +120,7 @@ class ScalarState extends State {
                     this.context.transitionTo(new ScalarState(start, undefined, line, 1));
                     return {
                         value: {
-                            kind: TokenKind.Scalar, value: fold(chunks),
+                            kind: TokenKind.Scalar, value: fold(),
                             indent: blockIndent, line: this.line, column: this.column
                         }
                     };
@@ -142,7 +142,7 @@ class ScalarState extends State {
                             break;
                         }
 
-                        if (chunks.length === 0) {
+                        if (spans.length === 0) {
                             this.context.transitionTo(new ScalarState(index + 1, indent + 1, line, column + index - start + 1));
                             return {
                                 value: {
@@ -155,7 +155,7 @@ class ScalarState extends State {
                         this.context.transitionTo(new ScalarState(start, undefined, line, 1));
                         return {
                             value: {
-                                kind: TokenKind.Scalar, value: fold(chunks),
+                                kind: TokenKind.Scalar, value: fold(),
                                 indent: blockIndent, line: this.line, column: this.column
                             }
                         };
@@ -169,15 +169,15 @@ class ScalarState extends State {
 
                         this.context.transitionTo(new CommentState(index + 1, line, column + padding));
 
-                        if (chunks.length === 0) {
+                        if (spans.length === 0) {
                             return this.context.next();
                         }
 
-                        chunks.push(text.substring(start, index).trim());
+                        addSpan(start, index);
                         this.context.transitionTo(new CommentState(index + 1, line, column + padding));
                         return {
                             value: {
-                                kind: TokenKind.Scalar, value: fold(chunks),
+                                kind: TokenKind.Scalar, value: fold(),
                                 indent: blockIndent, line: this.line, column: this.column
                             }
                         }
@@ -185,12 +185,12 @@ class ScalarState extends State {
                 }
             }
 
-            chunks.push(text.substring(start, index).trim());
+            addSpan(start, index);
         }
 
         this.context.transitionTo(new FinalState());
 
-        const value = fold(chunks);
+        const value = fold();
         return value
             ? {
                 value: {
@@ -200,6 +200,17 @@ class ScalarState extends State {
                 }
             }
             : this.context.next()
+
+        function addSpan(start: number, end: number) {
+            const span = text.substring(start, end).trim();
+            if (span || spans.length) {
+                spans.push(span);
+            }
+        }
+
+        function fold() {
+            return spans.reduce((prev, curent) => prev + (curent ? (prev[prev.length - 1] !== "\n" ? " " : "") + curent : "\n"), "").trim() || null;
+        }
     }
 }
 
@@ -231,10 +242,6 @@ class FinalState extends State {
     next(): IteratorResult<Token, undefined> {
         return { done: true, value: undefined };
     }
-}
-
-function fold(chunks: Array<string>) {
-    return chunks.reduce((prev, curent) => prev + (curent ? (prev[prev.length - 1] !== "\n" ? " " : "") + curent : "\n"), "").trim() || null;
 }
 
 function isWhiteSpace(code: number | undefined) {
