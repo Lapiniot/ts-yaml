@@ -1,6 +1,7 @@
 import { isEOL, isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers";
 import { Indicators, Token, TokenKind, YamlFoldString } from "../Types";
 import { CommentState } from "./CommentState";
+import { DoubleQuoteScalarState } from "./DoubleQuoteScalarState";
 import { FinalState } from "./FinalState";
 import { SingleQuoteScalarState } from "./SingleQuoteScalarState";
 import { State } from "./State";
@@ -56,6 +57,9 @@ export class ScalarState extends State {
                         break;
                     case Indicators.SingleQuote:
                         this.context.transitionTo(new SingleQuoteScalarState(index + 1, indent, line, column + padding));
+                        return this.context.next();
+                    case Indicators.DoubleQuote:
+                        this.context.transitionTo(new DoubleQuoteScalarState(index + 1, indent, line, column + padding))
                         return this.context.next();
                 }
             }
