@@ -4,7 +4,11 @@
   "description": "Yet another YAML parser",
   "author": "aossss@gmail.com",
   "license": "ISC",
-  "main": "dist/src/Parser.js",
+  "main": "lib/Parser.js",
+  "types": "lib/Parser.d.ts",
+  "files": [
+    "/lib"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "tsc --noEmit && node --import tsx --test test/*"
