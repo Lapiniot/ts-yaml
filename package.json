@@ -6,8 +6,13 @@
   "license": "ISC",
   "main": "lib/Parser.js",
   "types": "lib/Parser.d.ts",
+  "keywords": [
+    "parser",
+    "YAML",
+    "YML"
+  ],
   "files": [
-    "/lib"
+    "lib"
   ],
   "scripts": {
     "build": "tsc",
