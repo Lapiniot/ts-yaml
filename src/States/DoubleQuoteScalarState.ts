@@ -1,7 +1,7 @@
 import { isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers";
-import { Indicators, Token, TokenKind, YamlFoldString } from "../Types";
+import { YamlFoldingStringBuilder } from "../StringBuilder";
 import { ScalarState } from "./ScalarState";
-import { State } from "./State";
+import { Indicators, State, Token, TokenKind } from "./State";
 
 export class DoubleQuoteScalarState extends State {
     constructor(readonly start: number, private readonly indent: number, line: number, column: number) {
@@ -9,7 +9,7 @@ export class DoubleQuoteScalarState extends State {
     }
 
     next(): IteratorResult<Token, undefined> {
-        const spans = new YamlFoldString();
+        const sb = new YamlFoldingStringBuilder();
         const { context: { text, text: { length } } } = this;
 
         for (let { start: index, start, indent, line, column } = this; index < length; line++, start = index) {
@@ -18,37 +18,37 @@ export class DoubleQuoteScalarState extends State {
                 const code = text.charCodeAt(index);
                 switch (code) {
                     case Indicators.DoubleQuote:
-                        spans.append(text.substring(start, index));
+                        sb.append(text.substring(start, index));
                         if (line == this.line) {
                             for (; index < length - 1 && isWhiteSpace(text.codePointAt(index + 1)); index++);
                             if (text.charCodeAt(index) === Indicators.Colon
                                 && (index + 1 >= length || isWhiteSpaceOrEOL(text.charCodeAt(index + 1)))) {
                                 this.context.transitionTo(new ScalarState(index + 1, indent + 1, line, index - start + indent + 2));
-                                return { value: { kind: TokenKind.MappingKey, key: spans.toString(), indent, line, column } };
+                                return { value: { kind: TokenKind.MappingKey, key: sb.toString(), indent, line, column } };
                             }
                         }
 
                         this.context.transitionTo(new ScalarState(index + 1, undefined, line, column));
-                        return { value: { kind: TokenKind.Scalar, value: spans.toString(), indent, line, column } };
+                        return { value: { kind: TokenKind.Scalar, value: sb.toString(), indent, line, column } };
 
                     case Indicators.Backslash:
-                        spans.append(text.substring(start, index));
+                        sb.append(text.substring(start, index));
                         const [unescaped, consumed] = parseEscaped(text, index + 1);
                         if (Number.isNaN(unescaped))
                             this.Throw("Invalid escape sequence", line, column);
-                        spans.append(String.fromCodePoint(unescaped));
+                        sb.append(String.fromCodePoint(unescaped));
                         index += consumed;
                         start = index + 1;
                         break;
 
                     case Indicators.CR:
-                        spans.appendLine(text.substring(start, index++));
+                        sb.appendLine(text.substring(start, index++));
                         if (text.charCodeAt(index) === Indicators.LF)
                             index++;
                         break scan_line_loop;
 
                     case Indicators.LF:
-                        spans.appendLine(text.substring(start, index++));
+                        sb.appendLine(text.substring(start, index++));
                         break scan_line_loop;
                 }
             }

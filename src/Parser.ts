@@ -62,11 +62,11 @@ class ConstructMappingState extends State<Record<string, any>> {
             case TokenKind.Scalar:
                 if (token.indent > this.indent) {
                     const current = this.node[this.key];
-                    if (current) {
-                        this.node[this.key] = current + " " + token.value;
-                    } else {
-                        this.node[this.key] = token.value;
+                    if (current !== undefined && current !== null) {
+                        throw new Error(`Scalar value is not expected at this position (Ln ${token.line}, Col ${token.column})`);
                     }
+
+                    this.node[this.key] = token.value;
                 } else {
                     // throw
                 }

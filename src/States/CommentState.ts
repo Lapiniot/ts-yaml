@@ -1,7 +1,6 @@
 import { isEOL } from "../Helpers";
-import { State } from "./State";
 import { ScalarState } from "./ScalarState";
-import { Token, TokenKind } from "../Types";
+import { State, Token, TokenKind } from "./State";
 
 export class CommentState extends State {
     next(): IteratorResult<Token, undefined> {

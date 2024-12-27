@@ -7,6 +7,7 @@ run({
         "test/PlainFlowScalar.ts",
         "test/DoubleQuotedFlowScalar.ts",
         "test/SingleQuotedFlowScalar.ts",
+        "test/LiteralBlockScalar.ts",
         "test/Document.ts"
     ]
 })

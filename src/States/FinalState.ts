@@ -1,5 +1,4 @@
-import { State } from "./State";
-import { Token } from "../Types";
+import { State, Token } from "./State";
 
 export class FinalState extends State {
     constructor() {

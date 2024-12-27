@@ -1,10 +1,11 @@
 import { isEOL, isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers";
-import { Indicators, Token, TokenKind, YamlFoldString } from "../Types";
+import { YamlFoldingStringBuilder } from "../StringBuilder";
 import { CommentState } from "./CommentState";
 import { DoubleQuoteScalarState } from "./DoubleQuoteScalarState";
 import { FinalState } from "./FinalState";
+import { LiteralBlockScalarState } from "./LiteralBlockScalarState";
 import { SingleQuoteScalarState } from "./SingleQuoteScalarState";
-import { State } from "./State";
+import { Indicators, State, Token, TokenKind } from "./State";
 
 export class ScalarState extends State {
     constructor(readonly start: number, private readonly expectedIndent: number | undefined, line: number, column: number) {
@@ -12,7 +13,7 @@ export class ScalarState extends State {
     }
 
     next(): IteratorResult<Token, undefined> {
-        const spans = new YamlFoldString();
+        const sb = new YamlFoldingStringBuilder();
         const { context: { text, text: { length } } } = this;
 
         scan_loop:
@@ -37,7 +38,7 @@ export class ScalarState extends State {
                 this.context.transitionTo(new ScalarState(start, undefined, line, 1));
                 return {
                     value: {
-                        kind: TokenKind.Scalar, value: spans.toString().trim() || null,
+                        kind: TokenKind.Scalar, value: sb.toString().trim() || null,
                         indent: blockIndent, line: this.line, column: this.column
                     }
                 };
@@ -45,10 +46,10 @@ export class ScalarState extends State {
 
             // Check for special markers that can change parsing mode, unless spans list already contains some accumulated 
             // meaningful text (this basically means we are already parsing regular scalar text)
-            if (spans.isEmpty) {
+            if (sb.isEmpty) {
                 // Sequence entry marker detection
                 switch (code) {
-                    case Indicators.SequenceEntry:
+                    case Indicators.Hyphen:
                         if (index + 1 >= length || isWhiteSpaceOrEOL(text.codePointAt(index + 1))) {
                             this.context.transitionTo(new ScalarState(index + 1, indent + 1, line, column + padding + 1));
                             return { value: { kind: TokenKind.SequenceEntry, indent, line, column: column + padding } };
@@ -61,6 +62,9 @@ export class ScalarState extends State {
                     case Indicators.DoubleQuote:
                         this.context.transitionTo(new DoubleQuoteScalarState(index + 1, indent, line, column + padding))
                         return this.context.next();
+                    case Indicators.VerticalBar:
+                        this.context.transitionTo(new LiteralBlockScalarState(index + 1, indent, line, column + padding));
+                        return this.context.next();
                 }
             }
 
@@ -68,8 +72,8 @@ export class ScalarState extends State {
                 switch (text.codePointAt(index)) {
                     case Indicators.CR: {
                         const value = text.substring(start, index).trim();
-                        if (value || !spans.isEmpty)
-                            spans.appendLine(value);
+                        if (value || !sb.isEmpty)
+                            sb.appendLine(value);
                         if (text.charCodeAt(index + 1) === Indicators.LF)
                             index++;
                         continue scan_loop;
@@ -77,8 +81,8 @@ export class ScalarState extends State {
 
                     case Indicators.LF: {
                         const value = text.substring(start, index).trim();
-                        if (value || !spans.isEmpty)
-                            spans.appendLine(value);
+                        if (value || !sb.isEmpty)
+                            sb.appendLine(value);
                         continue scan_loop;
                     }
 
@@ -88,7 +92,7 @@ export class ScalarState extends State {
                             break;
                         }
 
-                        if (spans.isEmpty) {
+                        if (sb.isEmpty) {
                             this.context.transitionTo(new ScalarState(index + 1, indent + 1, line, column + index - start + 1));
                             return {
                                 value: {
@@ -101,29 +105,29 @@ export class ScalarState extends State {
                         this.context.transitionTo(new ScalarState(start, undefined, line, 1));
                         return {
                             value: {
-                                kind: TokenKind.Scalar, value: spans.toString().trim() || null,
+                                kind: TokenKind.Scalar, value: sb.toString().trim() || null,
                                 indent: blockIndent, line: this.line, column: this.column
                             }
                         };
                     }
 
                     // Comment line detection
-                    case Indicators.Comment: {
+                    case Indicators.Hash: {
                         if (index - 1 > 0 && !isWhiteSpaceOrEOL(text.codePointAt(index - 1))) {
                             break;
                         }
 
                         this.context.transitionTo(new CommentState(index + 1, line, column + padding));
 
-                        if (spans.isEmpty) {
+                        if (sb.isEmpty) {
                             return this.context.next();
                         }
 
-                        spans.append(text.substring(start, index).trim());
+                        sb.append(text.substring(start, index).trim());
                         this.context.transitionTo(new CommentState(index + 1, line, column + padding));
                         return {
                             value: {
-                                kind: TokenKind.Scalar, value: spans.toString().trim(),
+                                kind: TokenKind.Scalar, value: sb.toString().trim(),
                                 indent: blockIndent, line: this.line, column: this.column
                             }
                         };
@@ -131,12 +135,12 @@ export class ScalarState extends State {
                 }
             }
 
-            spans.append(text.substring(start, index).trim());
+            sb.append(text.substring(start, index).trim());
         }
 
         this.context.transitionTo(new FinalState());
 
-        const value = spans.toString().trim() || null;
+        const value = sb.toString().trim() || null;
         if (value === null && this.expectedIndent === undefined) {
             // value == null - means we havn't parsed anything meaningful (only presentation
             // level whitespaces or empty lines e.g.)

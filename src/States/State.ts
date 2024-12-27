@@ -1,5 +1,5 @@
 import { TokenizerCore } from "../TokenizerCore";
-import { Token } from "../Types";
+import { Token, TokenKind, Indicators } from "../Types";
 
 export abstract class State {
     protected context!: TokenizerCore;
@@ -16,3 +16,5 @@ export abstract class State {
 
     public abstract next(): IteratorResult<Token, undefined>;
 }
+
+export { Token, TokenKind, Indicators }
