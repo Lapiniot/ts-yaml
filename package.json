@@ -5,7 +5,7 @@
   "author": "aossss@gmail.com",
   "license": "ISC",
   "main": "lib/Parser.js",
-  "types": "lib/Parser.d.ts",
+  "types": "lib/Types/Parser.d.ts",
   "keywords": [
     "parser",
     "YAML",
