@@ -10,7 +10,7 @@ export abstract class State {
         this.context = context;
     }
 
-    protected Throw(message: string, line: number, column: number): never {
+    protected throw(message: string, line: number, column: number): never {
         throw new Error(`${message} at (Ln ${line}, Col ${column}).`);
     }
 

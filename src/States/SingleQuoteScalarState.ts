@@ -52,6 +52,6 @@ export class SingleQuoteScalarState extends State {
             for (; index < length && isWhiteSpace(text.codePointAt(index)); index++);
         }
 
-        this.Throw("Unexpected end of character sequence within single-quoted scalar", this.line, this.column);
+        this.throw("Unexpected end of character sequence within single-quoted scalar", this.line, this.column);
     }
 }

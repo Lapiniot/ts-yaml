@@ -35,7 +35,7 @@ export class DoubleQuoteScalarState extends State {
                         sb.append(text.substring(start, index));
                         const [unescaped, consumed] = parseEscaped(text, index + 1);
                         if (Number.isNaN(unescaped))
-                            this.Throw("Invalid escape sequence", line, column);
+                            this.throw("Invalid escape sequence", line, column);
                         sb.append(String.fromCodePoint(unescaped));
                         index += consumed;
                         start = index + 1;
@@ -57,7 +57,7 @@ export class DoubleQuoteScalarState extends State {
             for (; index < length && isWhiteSpace(text.codePointAt(index)); index++);
         }
 
-        this.Throw("Unexpected end of character sequence within double-quoted scalar", this.line, this.column);
+        this.throw("Unexpected end of character sequence within double-quoted scalar", this.line, this.column);
     }
 }
 

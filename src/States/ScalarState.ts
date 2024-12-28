@@ -3,6 +3,7 @@ import { YamlFoldingStringBuilder } from "../StringBuilder";
 import { CommentState } from "./CommentState";
 import { DoubleQuoteScalarState } from "./DoubleQuoteScalarState";
 import { FinalState } from "./FinalState";
+import { FoldedBlockScalarState } from "./FoldedBlockScalarState";
 import { LiteralBlockScalarState } from "./LiteralBlockScalarState";
 import { SingleQuoteScalarState } from "./SingleQuoteScalarState";
 import { Indicators, State, Token, TokenKind } from "./State";
@@ -64,6 +65,9 @@ export class ScalarState extends State {
                         return this.context.next();
                     case Indicators.VerticalBar:
                         this.context.transitionTo(new LiteralBlockScalarState(index + 1, indent, line, column + padding));
+                        return this.context.next();
+                    case Indicators.GreaterThan:
+                        this.context.transitionTo(new FoldedBlockScalarState(index + 1, indent, line, column + padding));
                         return this.context.next();
                 }
             }

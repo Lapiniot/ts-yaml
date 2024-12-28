@@ -1,3 +1,5 @@
+import { isWhiteSpace } from "./Helpers";
+
 export abstract class StringBuilder {
     // Allow storing null elements and treat them as explicit 
     // line end marker instead of "\n" strings.
@@ -22,24 +24,60 @@ export abstract class StringBuilder {
     public abstract toString(): string;
 }
 
-/**
- * From the YAML spec:
- * 6.5. Line Folding
- * Line folding allows long lines to be broken for readability, while retaining the semantics of the original long line.
- * If a line break is followed by an empty line, it is trimmed; the first line break is discarded
- * and the rest are retained as content.
- * Otherwise (the following line is not empty), the line break is converted to a single space (x20).
- */
+abstract class FoldedStringBuilder extends StringBuilder {
+    /**
+     * From the YAML spec:
+     * 6.5. Line Folding
+     * Line folding allows long lines to be broken for readability, while retaining the semantics of the original long line.
+     * If a line break is followed by an empty line, it is trimmed; the first line break is discarded
+     * and the rest are retained as content.
+     * Otherwise (the following line is not empty), the line break is converted to a single space (x20).
+     */
+    protected fold(lines: (string | null)[], length?: number) {
+        let str = "";
+        length ??= lines.length;
+
+        main_loop: for (let i = 0, preserve = true; i < length; i++) {
+            const current = lines[i];
+            if (current === null) {
+                let breaks = 1;
+                for (; i < length - 1; i++, breaks++) {
+                    const next = lines[i + 1];
+                    if (next !== null) {
+                        preserve ||= isWhiteSpace(next.charCodeAt(0));
+                        str += preserve ? "\n".repeat(breaks) : ("\n".repeat(breaks - 1) || " ");
+                        continue main_loop;
+                    }
+                }
+
+                str += "\n".repeat(breaks);
+            }
+            else {
+                str += current;
+                // Set preserve flag if more indented line is detected, 
+                // otherwise reset to allow folding at next iterations
+                preserve = isWhiteSpace(current.charCodeAt(0));
+            }
+        }
+
+        return str;
+    }
+}
+
 export class YamlFoldingStringBuilder extends StringBuilder {
     public override toString(): string {
-        return this.spans.reduce((prev, current, index, arr) => prev +
-            (current === null
-                ? arr[index - 1] !== null
-                    ? arr[index + 1] !== null
-                        ? " "
-                        : ""
+        let str = "";
+        const lines = this.spans;
+        for (let i = 0; i < lines.length; i++) {
+            const current = lines[i];
+            str += (current === null
+                ? lines[i - 1] !== null
+                    ? lines[i + 1] !== null ? " " : ""
                     : "\n"
-                : current), "") as string;
+                : current);
+        }
+
+        return str;
     }
 }
 
@@ -52,9 +90,10 @@ export class YamlFoldingStringBuilder extends StringBuilder {
 export class LiteralBlockStripModeStringBuilder extends StringBuilder {
     public override toString(): string {
         let str = "", len = this.spans.length;
-        for (; len > 0 && this.spans[len - 1] === null; len--);
+        const lines = this.spans;
+        for (; len > 0 && lines[len - 1] === null; len--);
         for (let i = 0; i < len; i++) {
-            const current = this.spans[i];
+            const current = lines[i];
             str += (current === null ? "\n" : current);
         }
 
@@ -86,11 +125,34 @@ export class LiteralBlockClipModeStringBuilder extends LiteralBlockStripModeStri
 export class LiteralBlockKeepModeStringBuilder extends StringBuilder {
     public override toString(): string {
         let str = "";
-        for (let i = 0; i < this.spans.length; i++) {
-            const current = this.spans[i];
+        const lines = this.spans, len = lines.length;
+        for (let i = 0; i < len; i++) {
+            const current = lines[i];
             str += (current === null ? "\n" : current);
         }
 
         return str;
+    }
+}
+
+export class FoldedBlockStripModeStringBuilder extends FoldedStringBuilder {
+    public override toString(): string {
+        const lines = this.spans;
+        let len = lines.length;
+        for (; len > 0 && lines[len - 1] === null; len--);
+        return this.fold(lines, len);
+    }
+}
+
+export class FoldedBlockKeepModeStringBuilder extends FoldedStringBuilder {
+    public override toString(): string {
+        return this.fold(this.spans);
+    }
+}
+
+export class FoldedBlockClipModeStringBuilder extends FoldedBlockStripModeStringBuilder {
+    public override toString(): string {
+        const str = super.toString();
+        return str !== "" ? str + "\n" : str;
     }
 }

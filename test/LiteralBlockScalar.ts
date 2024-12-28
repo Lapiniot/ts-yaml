@@ -120,15 +120,15 @@ text`), error => error instanceof Error && error.message === "Invalid literal bl
 
     test("Parse literal block scalar with content (including WS only) and empty lines interleaved", () => {
         const actual = Parser.parse(String.raw`  |
-      literal
+        literal
 
           
-        text
+            text
 
             
 
-        `);
-        const expected = "literal\n\n    \n  text\n\n      \n\n  \n";
+    `);
+        const expected = "literal\n\n  \n    text\n\n    \n";
         assert.equal(actual, expected);
     });
 
