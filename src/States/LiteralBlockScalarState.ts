@@ -3,15 +3,15 @@ import { BlockScalarState } from "./BlockScalarState";
 
 export class LiteralBlockScalarState extends BlockScalarState {
     protected override createKeepModeStringBuilder() {
-        return new SB.LiteralBlockKeepModeStringBuilder();
+        return new SB.LiteralBlockScalarKeepModeStringBuilder();
     }
 
     protected override createStripModeStringBuilder() {
-        return new SB.LiteralBlockStripModeStringBuilder();
+        return new SB.LiteralBlockScalarStripModeStringBuilder();
     }
 
     protected override createClipModeStringBuilder() {
-        return new SB.LiteralBlockClipModeStringBuilder();
+        return new SB.LiteralBlockScalarClipModeStringBuilder();
     }
 
     protected override throwInvalidBlockScalar(line: number, column: number): never {

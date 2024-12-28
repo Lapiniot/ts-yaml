@@ -1,5 +1,5 @@
 import { isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers";
-import { YamlFoldingStringBuilder } from "../StringBuilder";
+import { FoldedFlowScalarStringBuilder } from "../StringBuilder";
 import { ScalarState } from "./ScalarState";
 import { Indicators, State, Token, TokenKind } from "./State";
 
@@ -9,7 +9,7 @@ export class DoubleQuoteScalarState extends State {
     }
 
     next(): IteratorResult<Token, undefined> {
-        const sb = new YamlFoldingStringBuilder();
+        const sb = new FoldedFlowScalarStringBuilder();
         const { context: { text, text: { length } } } = this;
 
         for (let { start: index, start, indent, line, column } = this; index < length; line++, start = index) {

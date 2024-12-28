@@ -24,57 +24,26 @@ export abstract class StringBuilder {
     public abstract toString(): string;
 }
 
-abstract class FoldedStringBuilder extends StringBuilder {
-    /**
-     * From the YAML spec:
-     * 6.5. Line Folding
-     * Line folding allows long lines to be broken for readability, while retaining the semantics of the original long line.
-     * If a line break is followed by an empty line, it is trimmed; the first line break is discarded
-     * and the rest are retained as content.
-     * Otherwise (the following line is not empty), the line break is converted to a single space (x20).
-     */
-    protected fold(lines: (string | null)[], length?: number) {
+export class FoldedFlowScalarStringBuilder extends StringBuilder {
+    public override toString(): string {
         let str = "";
-        length ??= lines.length;
-
-        main_loop: for (let i = 0, preserve = true; i < length; i++) {
-            const current = lines[i];
+        const { spans, spans: { length } } = this;
+        for (let i = 0; i < length; i++) {
+            const current = spans[i];
             if (current === null) {
                 let breaks = 1;
                 for (; i < length - 1; i++, breaks++) {
-                    const next = lines[i + 1];
+                    const next = spans[i + 1];
                     if (next !== null) {
-                        preserve ||= isWhiteSpace(next.charCodeAt(0));
-                        str += preserve ? "\n".repeat(breaks) : ("\n".repeat(breaks - 1) || " ");
-                        continue main_loop;
+                        break;
                     }
                 }
 
-                str += "\n".repeat(breaks);
+                str += "\n".repeat(breaks - 1) || " ";
             }
             else {
                 str += current;
-                // Set preserve flag if more indented line is detected, 
-                // otherwise reset to allow folding at next iterations
-                preserve = isWhiteSpace(current.charCodeAt(0));
             }
-        }
-
-        return str;
-    }
-}
-
-export class YamlFoldingStringBuilder extends StringBuilder {
-    public override toString(): string {
-        let str = "";
-        const lines = this.spans;
-        for (let i = 0; i < lines.length; i++) {
-            const current = lines[i];
-            str += (current === null
-                ? lines[i - 1] !== null
-                    ? lines[i + 1] !== null ? " " : ""
-                    : "\n"
-                : current);
         }
 
         return str;
@@ -87,13 +56,13 @@ export class YamlFoldingStringBuilder extends StringBuilder {
  * Stripping is specified by the “-” chomping indicator. In this case, the final line break and any trailing 
  * empty lines are excluded from the scalar’s content.
  */
-export class LiteralBlockStripModeStringBuilder extends StringBuilder {
+export class LiteralBlockScalarStripModeStringBuilder extends StringBuilder {
     public override toString(): string {
-        let str = "", len = this.spans.length;
-        const lines = this.spans;
-        for (; len > 0 && lines[len - 1] === null; len--);
-        for (let i = 0; i < len; i++) {
-            const current = lines[i];
+        let str = "", length = this.spans.length;
+        const spans = this.spans;
+        for (; length > 0 && spans[length - 1] === null; length--);
+        for (let i = 0; i < length; i++) {
+            const current = spans[i];
             str += (current === null ? "\n" : current);
         }
 
@@ -108,7 +77,7 @@ export class LiteralBlockStripModeStringBuilder extends StringBuilder {
  * In this case, the final line break character is preserved in the scalar’s content. However, 
  * any trailing empty lines are excluded from the scalar’s content.
  */
-export class LiteralBlockClipModeStringBuilder extends LiteralBlockStripModeStringBuilder {
+export class LiteralBlockScalarClipModeStringBuilder extends LiteralBlockScalarStripModeStringBuilder {
     public override toString(): string {
         const str = super.toString();
         return str !== "" ? str + "\n" : str;
@@ -122,12 +91,12 @@ export class LiteralBlockClipModeStringBuilder extends LiteralBlockStripModeStri
  * trailing empty lines are considered to be part of the scalar’s content. 
  * These additional lines are not subject to folding.
  */
-export class LiteralBlockKeepModeStringBuilder extends StringBuilder {
+export class LiteralBlockScalarKeepModeStringBuilder extends StringBuilder {
     public override toString(): string {
         let str = "";
-        const lines = this.spans, len = lines.length;
-        for (let i = 0; i < len; i++) {
-            const current = lines[i];
+        const { spans, spans: { length } } = this;
+        for (let i = 0; i < length; i++) {
+            const current = spans[i];
             str += (current === null ? "\n" : current);
         }
 
@@ -135,22 +104,72 @@ export class LiteralBlockKeepModeStringBuilder extends StringBuilder {
     }
 }
 
-export class FoldedBlockStripModeStringBuilder extends FoldedStringBuilder {
+export class FoldedBlockScalarStripModeStringBuilder extends StringBuilder {
     public override toString(): string {
-        const lines = this.spans;
-        let len = lines.length;
-        for (; len > 0 && lines[len - 1] === null; len--);
-        return this.fold(lines, len);
+        let str = "";
+        const { spans, spans: { length } } = this;
+
+        for (let i = 0, preserve = true; i < length; i++) {
+            const current = spans[i];
+            if (current === null) {
+                let breaks = 1;
+                for (; i < length - 1; i++, breaks++) {
+                    const next = spans[i + 1];
+                    if (next !== null) {
+                        preserve ||= isWhiteSpace(next.charCodeAt(0));
+                        str += preserve ? "\n".repeat(breaks) : ("\n".repeat(breaks - 1) || " ");
+                        break;
+                    }
+                }
+            }
+            else {
+                str += current;
+                // Set preserve flag if more indented line is detected, 
+                // otherwise reset to allow folding at next iterations
+                preserve = isWhiteSpace(current.charCodeAt(0));
+            }
+        }
+
+        return str;
     }
 }
 
-export class FoldedBlockKeepModeStringBuilder extends FoldedStringBuilder {
+export class FoldedBlockScalarKeepModeStringBuilder extends StringBuilder {
     public override toString(): string {
-        return this.fold(this.spans);
+        let str = "";
+        const { spans, spans: { length } } = this;
+        main_loop: for (let i = 0, preserve = true; i < length; i++) {
+            const current = spans[i];
+            if (current === null) {
+                let breaks = 1;
+                for (; i < length - 1; i++, breaks++) {
+                    const next = spans[i + 1];
+                    if (next !== null) {
+                        preserve ||= isWhiteSpace(next.charCodeAt(0));
+                        str += preserve ? "\n".repeat(breaks) : ("\n".repeat(breaks - 1) || " ");
+                        continue main_loop;
+                    }
+                }
+
+                // From the spec:
+                // Keeping is specified by the “+” chomping indicator. In this case, the final 
+                // line break and any trailing empty lines are considered to be part of the 
+                // scalar’s content. These additional lines are not subject to folding.
+                str += "\n".repeat(breaks);
+            }
+            else {
+                str += current;
+                // Set preserve flag if more indented line is detected, 
+                // otherwise reset to allow folding at next iterations
+                preserve = isWhiteSpace(current.charCodeAt(0));
+            }
+        }
+
+        return str;
     }
 }
 
-export class FoldedBlockClipModeStringBuilder extends FoldedBlockStripModeStringBuilder {
+export class FoldedBlockScalarClipModeStringBuilder extends FoldedBlockScalarStripModeStringBuilder {
     public override toString(): string {
         const str = super.toString();
         return str !== "" ? str + "\n" : str;

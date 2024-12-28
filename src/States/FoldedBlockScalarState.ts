@@ -3,15 +3,15 @@ import { BlockScalarState } from "./BlockScalarState";
 
 export class FoldedBlockScalarState extends BlockScalarState {
     protected createKeepModeStringBuilder(): SB.StringBuilder {
-        return new SB.FoldedBlockKeepModeStringBuilder();
+        return new SB.FoldedBlockScalarKeepModeStringBuilder();
     }
 
     protected createStripModeStringBuilder(): SB.StringBuilder {
-        return new SB.FoldedBlockStripModeStringBuilder();
+        return new SB.FoldedBlockScalarStripModeStringBuilder();
     }
 
     protected createClipModeStringBuilder(): SB.StringBuilder {
-        return new SB.FoldedBlockClipModeStringBuilder();
+        return new SB.FoldedBlockScalarClipModeStringBuilder();
     }
 
     protected throwInvalidBlockScalar(line: number, column: number): never {
