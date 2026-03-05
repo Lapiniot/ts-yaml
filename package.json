@@ -1,16 +1,24 @@
 {
   "name": "ts-yaml",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Yet another YAML parser",
-  "author": "aossss@gmail.com",
-  "license": "ISC",
   "main": "lib/Parser.js",
+  "author": "Lapiniot",
+  "license": "GPL-3.0-only",
   "types": "lib/Types/Parser.d.ts",
   "keywords": [
     "parser",
     "YAML",
     "YML"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lapiniot/ts-yaml.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lapiniot/ts-yaml/issues"
+  },
+  "homepage": "https://github.com/Lapiniot/ts-yaml#readme",
   "files": [
     "lib"
   ],
@@ -19,10 +27,10 @@
     "test": "tsc --noEmit && node --import tsx --test test/*"
   },
   "dependencies": {
-    "@types/node": "^22.10.2"
+    "@types/node": "^25.3.3"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
