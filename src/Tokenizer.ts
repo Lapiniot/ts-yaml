@@ -1,5 +1,5 @@
-import { TokenizerCore } from "./TokenizerCore";
-import { Token, TokenKind } from "./Types";
+import { TokenizerCore } from "./TokenizerCore.js";
+import { type Token, TokenKind } from "./Types.js";
 
 export class Tokenizer implements Iterable<Token> {
     constructor(private readonly text: string) {
@@ -10,4 +10,4 @@ export class Tokenizer implements Iterable<Token> {
     }
 }
 
-export { Token, TokenKind }
+export { type Token, TokenKind }

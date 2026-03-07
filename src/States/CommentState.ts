@@ -1,6 +1,6 @@
-import { isEOL } from "../Helpers";
-import { ScalarState } from "./ScalarState";
-import { State, Token, TokenKind } from "./State";
+import { isEOL } from "../Helpers.js";
+import { ScalarState } from "./ScalarState.js";
+import { State, type Token, TokenKind } from "./State.js";
 
 export class CommentState extends State {
     next(): IteratorResult<Token, undefined> {

@@ -1,9 +1,9 @@
-import { isEOL, isWhiteSpace } from "../Helpers";
-import { StringBuilder } from "../StringBuilder";
-import { Indicators, Token, TokenKind } from "../Types";
-import { FinalState } from "./FinalState";
-import { ScalarState } from "./ScalarState";
-import { State } from "./State";
+import { isEOL, isWhiteSpace } from "../Helpers.js";
+import { StringBuilder } from "../StringBuilder.js";
+import { Indicators, type Token, TokenKind } from "../Types.js";
+import { FinalState } from "./FinalState.js";
+import { ScalarState } from "./ScalarState.js";
+import { State } from "./State.js";
 
 export abstract class BlockScalarState extends State {
     constructor(readonly start: number, protected readonly indent: number, line: number, column: number) {

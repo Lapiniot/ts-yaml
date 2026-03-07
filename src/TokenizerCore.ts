@@ -1,6 +1,5 @@
-import { ScalarState } from "./States/ScalarState";
-import { State } from "./States/State";
-import { Token } from "./Types";
+import { ScalarState } from "./states/ScalarState.js";
+import { State, type Token } from "./states/State.js";
 
 export class TokenizerCore implements Iterator<Token> {
     text: string;

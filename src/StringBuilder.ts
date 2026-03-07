@@ -1,4 +1,4 @@
-import { isWhiteSpace } from "./Helpers";
+import { isWhiteSpace } from "./Helpers.js";
 
 export abstract class StringBuilder {
     // Allow storing null elements and treat them as explicit 

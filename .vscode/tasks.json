@@ -2,23 +2,23 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "npm: test",
+      "detail": "node --test",
       "type": "npm",
       "script": "test",
       "group": "test",
       "problemMatcher": "$tsc",
-      "label": "npm: test",
-      "detail": "node --test"
     },
     {
+      "label": "npm: build",
+      "detail": "tsc",
       "type": "npm",
       "script": "build",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": "$tsc",
-      "label": "npm: build",
-      "detail": "tsc"
+      "problemMatcher": "$tsc"
     }
   ]
 }

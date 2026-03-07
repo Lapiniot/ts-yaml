@@ -1,7 +1,7 @@
-import { isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers";
-import { FoldedFlowScalarStringBuilder } from "../StringBuilder";
-import { ScalarState } from "./ScalarState";
-import { Indicators, State, Token, TokenKind } from "./State";
+import { isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers.js";
+import { FoldedFlowScalarStringBuilder } from "../StringBuilder.js";
+import { ScalarState } from "./ScalarState.js";
+import { Indicators, State, type Token, TokenKind } from "./State.js";
 
 export class SingleQuoteScalarState extends State {
     constructor(readonly start: number, private readonly indent: number, line: number, column: number) {

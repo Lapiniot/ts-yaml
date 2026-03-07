@@ -1,4 +1,4 @@
-import { Token, Tokenizer, TokenKind } from "./Tokenizer";
+import { type Token, Tokenizer, TokenKind } from "./Tokenizer.js";
 
 export default class {
     private constructor() { }

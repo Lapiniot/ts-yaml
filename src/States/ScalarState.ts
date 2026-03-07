@@ -1,12 +1,12 @@
-import { isEOL, isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers";
-import { FoldedFlowScalarStringBuilder } from "../StringBuilder";
-import { CommentState } from "./CommentState";
-import { DoubleQuoteScalarState } from "./DoubleQuoteScalarState";
-import { FinalState } from "./FinalState";
-import { FoldedBlockScalarState } from "./FoldedBlockScalarState";
-import { LiteralBlockScalarState } from "./LiteralBlockScalarState";
-import { SingleQuoteScalarState } from "./SingleQuoteScalarState";
-import { Indicators, State, Token, TokenKind } from "./State";
+import { isEOL, isWhiteSpace, isWhiteSpaceOrEOL } from "../Helpers.js";
+import { FoldedFlowScalarStringBuilder } from "../StringBuilder.js";
+import { CommentState } from "./CommentState.js";
+import { DoubleQuoteScalarState } from "./DoubleQuoteScalarState.js";
+import { FinalState } from "./FinalState.js";
+import { FoldedBlockScalarState } from "./FoldedBlockScalarState.js";
+import { LiteralBlockScalarState } from "./LiteralBlockScalarState.js";
+import { SingleQuoteScalarState } from "./SingleQuoteScalarState.js";
+import { Indicators, State, type Token, TokenKind } from "./State.js";
 
 export class ScalarState extends State {
     constructor(readonly start: number, private readonly expectedIndent: number | undefined, line: number, column: number) {

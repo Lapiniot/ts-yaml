@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { suite, test } from "node:test";
-import Parser from "../src/Parser";
+import Parser from "../Parser.js";
 
 suite("Literal block scalar parsing", () => {
 

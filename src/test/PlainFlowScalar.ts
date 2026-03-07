@@ -1,6 +1,6 @@
 import { test, suite } from "node:test";
 import assert from "node:assert";
-import Parser from "../src/Parser";
+import Parser from "../Parser.js";
 
 suite("Plain flow scalar parsing", {}, () => {
     test("Parse as null from empty line", () => {

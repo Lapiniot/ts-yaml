@@ -1,5 +1,5 @@
-import * as SB from "../StringBuilder";
-import { BlockScalarState } from "./BlockScalarState";
+import * as SB from "../StringBuilder.js";
+import { BlockScalarState } from "./BlockScalarState.js";
 
 export class FoldedBlockScalarState extends BlockScalarState {
     protected createKeepModeStringBuilder(): SB.StringBuilder {
